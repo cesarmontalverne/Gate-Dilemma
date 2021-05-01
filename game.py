@@ -21,40 +21,75 @@ def Xor(inputs):
             totaltrue+=1
     return totaltrue%2
 def Xnor(inputs):
-    return not Xor(inputs)
+    list = []
+    for item in inputs:
+        if item not in list:
+            list.append(item)
+        if len(list)==1:
+            return True
+    return False
 
 camera = gamebox.Camera(800, 600)
 def restart(govalue):
-    global game_on, score, timer,inputs, output,siz,vari,selected
+    global game_on, score, timer,inputs, output,siz,vari,selected, gatetried
     game_on = govalue
-    score = 0
-    timer = 15
+    score = 0.0
+    timer = 10
     inputs = [random.randint(0, 1) for i in range(2)]
     output = random.randint(0, 1)
     siz = 2
     vari = 1
-    selected = "none"
+    gatetried = 0
 restart(0)
 def startscreen():
     start_screen = gamebox.from_color(400, 300, 'white', 1000, 800)
     camera.draw(start_screen)
     camera.draw(gamebox.from_text(400, 100, 'Gate Dilemma', 60, 'black'))
+    fin = open("score.txt","r")
+    camera.draw(gamebox.from_text(400, 50, 'High Score: '+fin.readline().strip(), 30, 'black'))
+    fin.close()
     camera.draw(gamebox.from_text(400, 550, 'By: Cesar A Godoy', 20, 'black'))
     camera.draw(gamebox.from_text(400, 570, 'Uses Gamebox, by Luther Tychonievich', 15, 'black'))
     instructions = ["Choose the gate that matches the inputs and the output."
-        ,"Get ","with time running out and inputs increasing:"
-        , "How many points can you score?"]
-    for i in range(4):
+        ,"The time is short and the inputs increasing", "How many points can you score?"]
+    for i in range(len(instructions)):
         camera.draw(gamebox.from_text(400,200+i*35,instructions[i],35,'black'))
-    camera.draw(gamebox.from_text(400, 445, 'Press Spacebar to Continue', 25, 'white'))
+    camera.draw(gamebox.from_text(400, 515, 'Press Spacebar to Continue', 30, 'red'))
+    camera.draw(gamebox.from_text(400, 350, "Select keys and gain points as specified:", 25, 'black'))
+    gatespec = ["Gate     key#     points", "AND          1            1",
+                "NAND        2            2","OR             3          0.5","NOR          8           1","XOR          9            3","XNOR        0            3"]
+    for i in range(len(gatespec)):
+        if len(gatespec[i].split()[0].strip())!=2:
+            camera.draw(gamebox.from_text(400,375+i*15,gatespec[i],20,'black'))
+        else:
+            camera.draw(gamebox.from_text(402,375+i*15,gatespec[i],20,'black'))
+
 def gameover(keys):
-    global game_on,score
     camera.clear("black")
-    camera.draw(gamebox.from_text(400, 100, 'Game Over', 60, 'white'))
-    camera.draw(gamebox.from_text(400, 300, 'Score: '+str(score), 60, 'white'))
-    camera.draw(gamebox.from_text(400, 500, "press spacebar to restart", 60, 'white'))
+    camera.draw(gamebox.from_text(400, 100, 'Game Over', 65, 'white'))
+    camera.draw(gamebox.from_text(400, 300, 'Score: '+str(score), 55, 'white'))
+    fin = open("score.txt","r")
+    highscore = float(fin.readline().strip())
+    fin.close()
+    camera.draw(gamebox.from_text(400, 250, 'Highscore: '+str(highscore), 55, 'white'))
+    fout = open("score.txt","w")
+    fout.write(str(max(score,highscore)))
+    fout.close()
+    camera.draw(gamebox.from_text(400, 550, "press spacebar to restart", 30, 'red'))
+    camera.draw(gamebox.from_text(400, 515, 'Press M to go to menu', 30, 'red'))
+    camera.draw(gamebox.from_text(200, 400, "inputs", 35, 'white'))
+    camera.draw(gamebox.from_text(400, 400, "output", 35, 'white'))
+    camera.draw(gamebox.from_text(400, 440, str(output), 30, 'white'))
+    camera.draw(gamebox.from_text(600, 400, "gate tried", 35, 'white'))
+    gate = ["NONE","AND","NAND","OR","NOR","XOR","XNOR"]
+    camera.draw(gamebox.from_text(600, 440, gate[gatetried], 30, 'white'))
+    for i in range(round(siz)):
+        camera.draw(gamebox.from_text(180+i*20-(siz-2)*5, 440, str(inputs[i]), 30, 'white'))
+    #camera.draw(gamebox.from_text(400, 600, "press spacebar to restart", 60, 'white'))
     if pygame.K_SPACE in keys:
         restart(1)
+    if pygame.K_m in keys:
+        restart(0)
 
 def play(keys):
     global score,siz,inputs,output, game_on, inputs, output, siz
@@ -62,7 +97,7 @@ def play(keys):
     camera.draw(gamebox.from_text(600, 100, 'OUTPUT', 60, 'black'))
     camera.draw(gamebox.from_text(400, 60, 'score: '+str(score), 30, 'black'))
     camera.draw(gamebox.from_text(400, 30, 'timer: '+str(round(timer)), 30, 'black'))
-    for i in range(siz):
+    for i in range(round(siz)):
         camera.draw(gamebox.from_text(200, 150 + i * 35, str(inputs[i]), 35, 'black'))
     camera.draw(gamebox.from_text(600,150,str(output),35,'black'))
     #gates
@@ -77,24 +112,25 @@ def play(keys):
     camera.draw(gamebox.from_text(133, 550, 'NOR(4)', 40, 'white'))
     camera.draw(gamebox.from_text(400, 550, 'XOR(5)', 40, 'black'))
     camera.draw(gamebox.from_text(667, 550, 'XNOR(6)', 40, 'white'))
-    scores(keys,pygame.K_1, And(inputs),1)
-    scores(keys,pygame.K_2, Nand(inputs),2)
-    scores(keys,pygame.K_3, Or(inputs),0.5)
-    scores(keys,pygame.K_4, Nor(inputs),1)
-    scores(keys,pygame.K_5, Xor(inputs),3)
-    scores(keys,pygame.K_6, Xnor(inputs),3)
+    scores(keys,pygame.K_1, And(inputs),1,1)
+    scores(keys,pygame.K_2, Nand(inputs),2,2)
+    scores(keys,pygame.K_3, Or(inputs),0.5,3)
+    scores(keys,pygame.K_8, Nor(inputs),1,4)
+    scores(keys,pygame.K_9, Xor(inputs),3,5)
+    scores(keys,pygame.K_0, Xnor(inputs),3,6)
 
 def inandout():
     global inputs,output,siz
     siz = min(max(2, score // 5), 7)  # minimum num of inputs is 2, max is 7 and it changes every 5 times u score
-    inputs = [random.randint(0, 1) for i in range(siz)]
+    inputs = [random.randint(0, 1) for i in range(round(siz))]
     output = random.randint(0, 1)
 
-def scores(keys,k,gate,points):
-    global game_on,score,timer, vari
+def scores(keys,k,gate,points,attempind):
+    global game_on,score,timer, vari,gatetried
     pressed = pygame.key.get_pressed()
     if pressed[k] and timer>0 and vari:
         if gate != output:
+            gatetried = attempind
             timer = 0
         elif gate==output:
             vari = 0
@@ -102,7 +138,7 @@ def scores(keys,k,gate,points):
     if not vari and not (k in keys):
         pygame.time.delay(200)
         vari = 1
-        timer = 15
+        timer = 10
         inandout()
     elif timer<=0:
         game_on = 2
@@ -119,9 +155,9 @@ def tick(keys):
     elif(game_on==1):
         camera.clear("white")
         play(keys)
+        timer -= 0.08
     elif(game_on==2):
         gameover(keys)
-    timer-=0.08
     #camera.draw(gamebox.from_text(400, 300, 'vari: '+str(vari), 30, 'black'))
     camera.display()
 gamebox.timer_loop(30, tick)
