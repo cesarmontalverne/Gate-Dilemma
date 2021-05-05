@@ -1,4 +1,4 @@
-#game.py, cesar godoy
+#gatedilemma.py, cesar godoy
 import pygame, gamebox, random
 def And(inputs):
     for item in inputs:
@@ -21,19 +21,13 @@ def Xor(inputs):
             totaltrue+=1
     return totaltrue%2
 def Xnor(inputs):
-    list = []
-    for item in inputs:
-        if item not in list:
-            list.append(item)
-        if len(list)==1:
-            return True
-    return False
+    return not(Xor(inputs))
 
 camera = gamebox.Camera(800, 600)
 def restart(govalue):
     global game_on, score, timer,inputs, output,siz,vari,selected, gatetried
     game_on = govalue
-    score = 0.0
+    score = 0
     timer = 10
     inputs = [random.randint(0, 1) for i in range(2)]
     output = random.randint(0, 1)
@@ -57,23 +51,21 @@ def startscreen():
     camera.draw(gamebox.from_text(400, 515, 'Press Spacebar to Continue', 30, 'red'))
     camera.draw(gamebox.from_text(400, 350, "Select keys and gain points as specified:", 25, 'black'))
     gatespec = ["Gate     key#     points", "AND          1            1",
-                "NAND        2            2","OR             3          0.5","NOR          8           1","XOR          9            3","XNOR        0            3"]
+                "NAND        2            2","OR            3           1","NOR          8           2","XOR           9           3","XNOR        0            3"]
     for i in range(len(gatespec)):
-        if len(gatespec[i].split()[0].strip())!=2:
-            camera.draw(gamebox.from_text(400,375+i*15,gatespec[i],20,'black'))
-        else:
-            camera.draw(gamebox.from_text(402,375+i*15,gatespec[i],20,'black'))
+        camera.draw(gamebox.from_text(400,375+i*15,gatespec[i],20,'black'))
+
 
 def gameover(keys):
     camera.clear("black")
     camera.draw(gamebox.from_text(400, 100, 'Game Over', 65, 'white'))
     camera.draw(gamebox.from_text(400, 300, 'Score: '+str(score), 55, 'white'))
     fin = open("score.txt","r")
-    highscore = float(fin.readline().strip())
+    highscore = int(fin.readline().strip())
     fin.close()
     camera.draw(gamebox.from_text(400, 250, 'Highscore: '+str(highscore), 55, 'white'))
     fout = open("score.txt","w")
-    fout.write(str(max(score,highscore)))
+    fout.write(str(round(max(score,highscore))))
     fout.close()
     camera.draw(gamebox.from_text(400, 550, "press spacebar to restart", 30, 'red'))
     camera.draw(gamebox.from_text(400, 515, 'Press M to go to menu', 30, 'red'))
@@ -114,14 +106,14 @@ def play(keys):
     camera.draw(gamebox.from_text(667, 550, 'XNOR(6)', 40, 'white'))
     scores(keys,pygame.K_1, And(inputs),1,1)
     scores(keys,pygame.K_2, Nand(inputs),2,2)
-    scores(keys,pygame.K_3, Or(inputs),0.5,3)
-    scores(keys,pygame.K_8, Nor(inputs),1,4)
+    scores(keys,pygame.K_3, Or(inputs),1,3)
+    scores(keys,pygame.K_8, Nor(inputs),2,4)
     scores(keys,pygame.K_9, Xor(inputs),3,5)
     scores(keys,pygame.K_0, Xnor(inputs),3,6)
 
 def inandout():
     global inputs,output,siz
-    siz = min(max(2, score // 5), 7)  # minimum num of inputs is 2, max is 7 and it changes every 5 times u score
+    siz = min(max(2, int(score) // 5), 7)  # minimum num of inputs is 2, max is 7 and it changes every 5 times u score
     inputs = [random.randint(0, 1) for i in range(round(siz))]
     output = random.randint(0, 1)
 
@@ -138,7 +130,7 @@ def scores(keys,k,gate,points,attempind):
     if not vari and not (k in keys):
         pygame.time.delay(200)
         vari = 1
-        timer = 10
+        timer = max(5,10-1/(8*score))
         inandout()
     elif timer<=0:
         game_on = 2
