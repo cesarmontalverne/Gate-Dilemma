@@ -134,8 +134,6 @@ def scores(keys,k,gate,points,attempind):
             vari = 1
             timer = max(5,10-1/(8*score))
             inandout()
-    if pressed[k]:
-     camera.draw(gamebox.from_text(400, 300, 'vari: '+str(vari), 30, 'black'))
     elif timer<=0:
         game_on = 2
 
