@@ -120,6 +120,7 @@ def inandout():
 def scores(keys,k,gate,points,attempind):
     global game_on,score,timer, vari,gatetried
     pressed = pygame.key.get_pressed()
+    list = [pygame.K_0,pygame.K_1,pygame.K_2,pygame.K_3,pygame.K_8,pygame.K_9]
     if pressed[k] and timer>0 and vari:
         if gate != output:
             gatetried = attempind
@@ -127,11 +128,14 @@ def scores(keys,k,gate,points,attempind):
         elif gate==output:
             vari = 0
             score+=points
-    if not vari and not (k in keys):
-        pygame.time.delay(200)
-        vari = 1
-        timer = max(5,10-1/(8*score))
-        inandout()
+    for i in range(6):
+        if not vari and not pressed[list[i]]:
+            pygame.time.delay(200)
+            vari = 1
+            timer = max(5,10-1/(8*score))
+            inandout()
+    if pressed[k]:
+     camera.draw(gamebox.from_text(400, 300, 'vari: '+str(vari), 30, 'black'))
     elif timer<=0:
         game_on = 2
 
@@ -150,7 +154,6 @@ def tick(keys):
         timer -= 0.08
     elif(game_on==2):
         gameover(keys)
-    #camera.draw(gamebox.from_text(400, 300, 'vari: '+str(vari), 30, 'black'))
     camera.display()
 gamebox.timer_loop(30, tick)
 
