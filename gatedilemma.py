@@ -128,14 +128,14 @@ def scores(keys,k,gate,points,attempind):
         elif gate==output:
             vari = 0
             score+=points
+            inandout()
+    elif timer<=0:
+        game_on = 2
     for i in range(6):
         if not vari and not pressed[list[i]]:
             pygame.time.delay(200)
             vari = 1
             timer = max(5,10-1/(8*score))
-            inandout()
-    elif timer<=0:
-        game_on = 2
 
 def tick(keys):
     '''
