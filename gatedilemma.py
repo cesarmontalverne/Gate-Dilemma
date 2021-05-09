@@ -1,5 +1,6 @@
 #gatedilemma.py, cesar godoy
 import pygame, gamebox, random
+# logic gate simulator
 def And(inputs):
     for item in inputs:
         if item==0:
@@ -25,6 +26,9 @@ def Xnor(inputs):
 
 camera = gamebox.Camera(800, 600)
 def restart(govalue):
+    '''
+    initializes all variables necessary to start (or restart) the game from the very beginning (2 inputs and 10 time units)
+    '''
     global game_on, score, timer,inputs, output,siz,vari,selected, gatetried
     game_on = govalue
     score = 0
@@ -34,8 +38,11 @@ def restart(govalue):
     siz = 2
     vari = 1
     gatetried = 0
-restart(0)
+restart(0) #initializes the variables
 def startscreen():
+    '''
+    just builds the start screen
+    '''
     start_screen = gamebox.from_color(400, 300, 'white', 1000, 800)
     camera.draw(start_screen)
     camera.draw(gamebox.from_text(400, 100, 'Gate Dilemma', 60, 'black'))
@@ -57,6 +64,10 @@ def startscreen():
 
 
 def gameover(keys):
+    '''
+    deals with all the stuff that happens when the game is over. restarts all varaibles
+    leading you to restart the game or to the menu, whatever you please. Shows highscores and etc
+    '''
     camera.clear("black")
     camera.draw(gamebox.from_text(400, 100, 'Game Over', 65, 'white'))
     camera.draw(gamebox.from_text(400, 300, 'Score: '+str(score), 55, 'white'))
@@ -79,11 +90,14 @@ def gameover(keys):
         camera.draw(gamebox.from_text(180+i*20-(siz-2)*5, 440, str(inputs[i]), 30, 'white'))
     #camera.draw(gamebox.from_text(400, 600, "press spacebar to restart", 60, 'white'))
     if pygame.K_SPACE in keys:
-        restart(1)
+        restart(1) #restarts variables and sets the page to menu
     if pygame.K_m in keys:
         restart(0)
 
-def play(keys):
+def play():
+    """
+    sets playing mode. calls the relevant functions for the input section of the game
+    """
     global score,siz,inputs,output, game_on, inputs, output, siz
     camera.draw(gamebox.from_text(200, 100, 'INPUTS', 60, 'black'))
     camera.draw(gamebox.from_text(600, 100, 'OUTPUT', 60, 'black'))
@@ -104,20 +118,26 @@ def play(keys):
     camera.draw(gamebox.from_text(133, 550, 'NOR(4)', 40, 'white'))
     camera.draw(gamebox.from_text(400, 550, 'XOR(5)', 40, 'black'))
     camera.draw(gamebox.from_text(667, 550, 'XNOR(6)', 40, 'white'))
-    scores(keys,pygame.K_1, And(inputs),1,1)
-    scores(keys,pygame.K_2, Nand(inputs),2,2)
-    scores(keys,pygame.K_3, Or(inputs),1,3)
-    scores(keys,pygame.K_8, Nor(inputs),2,4)
-    scores(keys,pygame.K_9, Xor(inputs),3,5)
-    scores(keys,pygame.K_0, Xnor(inputs),3,6)
+    scores(pygame.K_1, And(inputs),1,1)
+    scores(pygame.K_2, Nand(inputs),2,2)
+    scores(pygame.K_3, Or(inputs),1,3)
+    scores(pygame.K_8, Nor(inputs),2,4)
+    scores(pygame.K_9, Xor(inputs),3,5)
+    scores(pygame.K_0, Xnor(inputs),3,6)
 
 def inandout():
+    '''
+    defines inputs, the output and number of inputs
+    '''
     global inputs,output,siz
     siz = min(max(2, int(score) // 5), 7)  # minimum num of inputs is 2, max is 7 and it changes every 5 times u score
     inputs = [random.randint(0, 1) for i in range(round(siz))]
     output = random.randint(0, 1)
 
-def scores(keys,k,gate,points,attempind):
+def scores(k,gate,points,attempind):
+    '''
+    input section of the game. where all the user input and answer verification comes along.
+    '''
     global game_on,score,timer, vari,gatetried
     pressed = pygame.key.get_pressed()
     list = [pygame.K_0,pygame.K_1,pygame.K_2,pygame.K_3,pygame.K_8,pygame.K_9]
@@ -132,6 +152,9 @@ def scores(keys,k,gate,points,attempind):
     elif timer<=0:
         game_on = 2
     for i in range(6):
+        # this loop is necessary because we need to make sure none of the keys is NOT being pressed.
+        # if Im selecting XOR by pressing 9, then 1,2,3,8 and 0 are not being pressed and the condition not pressed[k] is true
+        # which causes the inandout method to be called and change the inputs while you are still answering the previous question
         if not vari and not pressed[list[i]]:
             pygame.time.delay(200)
             vari = 1
@@ -148,7 +171,7 @@ def tick(keys):
             game_on = 1
     elif(game_on==1):
         camera.clear("white")
-        play(keys)
+        play()
         timer -= 0.08
     elif(game_on==2):
         gameover(keys)
