@@ -7,7 +7,7 @@ As a courtesy, Luther would appreciate it if you acknowledged him in any work
 that benefited from this code.'''
 
 from __future__ import division  # only used in python2
-
+import asyncio
 import pygame, sys
 import urllib, os.path
 
@@ -667,41 +667,62 @@ def keys_loop(callback):
 
 __all__.append('keys_loop')
 
-if __name__ == "__main__":
-    camera = Camera(400, 400)
 
+async def tick(keys):
+    global b
+    if keys:
+        if pygame.K_0 in keys:
+            b = from_text(40, 50, "Type \"1\"", 40, "blue", italic=False, bold=False)
+        elif pygame.K_1 in keys:
+            b = from_text(40, 50, "Type \"2\"", 40, "green", italic=True, bold=True)
+        elif pygame.K_2 in keys:
+            b = from_text(40, 50, "Type \"3\"", 40, "white", italic=False, bold=True)
+        elif pygame.K_a in keys:
+            stop_loop()
+        elif keys:
+            b.image = "https://www.python.org/static/img/python-logo.png"
+        b.full_size()
+    b.rotate(-5)
+    b.center = camera.mouse
+    b.bottom = camera.bottom
+    camera.draw(b)
+    camera.display()
+    await asyncio.sleep(0)  # Allows other async tasks to run
+
+async def main(camera):
+    # Initialize the camera and other variables
     camera.x = 10
 
+    global b
     b = from_text(40, 50, "It Works! (type \"0\")", 40, "red", italic=True, bold=False)
     b.speedx = 3
     b.left += 2
     b.y = 100
     b.move_speed()
 
-    camera.draw(b)
-    camera.display()
+    # Game loop
+    running = True
+    while running:
+        keys = set([])
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                keys.add(event.key)
+            if event.type == pygame.KEYUP and event.key in keys:
+                keys.remove(event.key)
 
+        await tick(keys)  # Call the async tick function
 
-    def tick(keys):
-        global b
-        if keys:
-            if pygame.K_0 in keys:
-                b = from_text(40, 50, "Type \"1\"", 40, "blue", italic=False, bold=False)
-            elif pygame.K_1 in keys:
-                b = from_text(40, 50, "Type \"2\"", 40, "green", italic=True, bold=True)
-            elif pygame.K_2 in keys:
-                b = from_text(40, 50, "Type \"3\"", 40, "white", italic=False, bold=True)
-            elif pygame.K_a in keys:
-                stop_loop()
-            elif keys:
-                b.image = "https://www.python.org/static/img/python-logo.png"
-            b.full_size()
-        b.rotate(-5)
-        b.center = camera.mouse
-        b.bottom = camera.bottom
         camera.draw(b)
         camera.display()
-
-
     timer_loop(30, tick)
+
+    await asyncio.sleep(0)  # This is critical for async functionality
+
+if __name__ == "__main__":
+    camera = Camera(400, 400)
+    asyncio.run(main(camera))
 
